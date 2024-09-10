@@ -1,49 +1,44 @@
-using System.Collections;
-using System.Collections.Generic;
 using UnityEngine;
 
 public class BallController : MonoBehaviour
 {
-    public float forwardSpeed = 5f;
-    public float dragSpeed = 0.1f;
+    public float forwardForce = 10f;
+    public float sidewaysForceMultiplier = 10f;
+    public float maxSidewaysSpeed = 5f;
+    public float dragSensitivity = 1f;
 
-    private float screenWidth;
-    private float initialposition;
-    private float targetposition;
-    private float rotationSpeed = 300f;
+    private Rigidbody rb;
+    private float initialPositionX;
 
     void Start()
     {
-        screenWidth = Screen.width;
-        targetposition = transform.position.x;
+        rb = GetComponent<Rigidbody>();
     }
 
     void Update()
     {
-        transform.Translate(Vector3.forward * forwardSpeed * Time.deltaTime, Space.World);
+        rb.AddForce(Vector3.forward * forwardForce, ForceMode.Acceleration);
 
-        RotateBall();
+        HandleMouseDrag();
+    }
 
-
+    void HandleMouseDrag()
+    {
         if (Input.GetMouseButtonDown(0))
         {
-            initialposition = Input.mousePosition.x;
+            initialPositionX = Input.mousePosition.x;
         }
         else if (Input.GetMouseButton(0))
         {
-            float dragDistance = (Input.mousePosition.x - initialposition) / screenWidth;
-            Vector3 newPosition = transform.position;
-            newPosition.x += dragDistance * dragSpeed * screenWidth;
+            float dragDistance = (Input.mousePosition.x - initialPositionX) / Screen.width;
 
-            transform.position = newPosition;
+            float sidewaysForce = dragDistance * sidewaysForceMultiplier * dragSensitivity;
 
-            initialposition = Input.mousePosition.x;
+            Vector3 newVelocity = rb.velocity + Vector3.right * sidewaysForce;
+            newVelocity.x = Mathf.Clamp(newVelocity.x, -maxSidewaysSpeed, maxSidewaysSpeed);
+            rb.velocity = new Vector3(newVelocity.x, rb.velocity.y, rb.velocity.z);
+
+            initialPositionX = Input.mousePosition.x;
         }
-    }
-    void RotateBall()
-    {
-        float rotationAngle = forwardSpeed * rotationSpeed * Time.deltaTime;
-
-        transform.Rotate(Vector3.right, rotationAngle);
     }
 }
