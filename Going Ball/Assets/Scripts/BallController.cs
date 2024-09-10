@@ -30,10 +30,17 @@ public class BallController : MonoBehaviour
         rb = GetComponent<Rigidbody>();
         startPosition = transform.position;
     }
-
+    private void FixedUpdate()
+    {
+  
+        // Set a consistent forward speed
+        Vector3 velocity = rb.velocity;
+        velocity.z = forwardForce;
+        rb.velocity = new Vector3(velocity.x, rb.velocity.y, velocity.z);
+    }
     void Update()
     {
-        rb.AddForce(Vector3.forward * forwardForce, ForceMode.Acceleration);
+       // rb.AddForce(Vector3.forward * forwardForce, ForceMode.Acceleration);
 
         HandleMouseDrag();
         if (transform.position.y < fallThreshold)
