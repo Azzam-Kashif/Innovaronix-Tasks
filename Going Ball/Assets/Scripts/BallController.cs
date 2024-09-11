@@ -11,7 +11,7 @@ public class BallController : MonoBehaviour
     private Rigidbody rb;
     private float initialPositionX;
     private float fallThreshold = -1;
-    private Vector3 startPosition;
+    public Vector3 startPosition;
     private void Awake()
     {
         // Singleton pattern implementation

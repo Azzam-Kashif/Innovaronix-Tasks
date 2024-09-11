@@ -2,6 +2,7 @@ using System.Collections;
 using System.Collections.Generic;
 using UnityEngine;
 using UnityEngine.SceneManagement;
+using UnityEngine.UI;
 
 public class UIManager : MonoBehaviour
 {
@@ -9,6 +10,7 @@ public class UIManager : MonoBehaviour
 
     public GameObject levelCompletePanel;
     public GameObject levelFailPanel;
+    public Slider progresbaar;
 
     private void Awake()
     {
@@ -42,6 +44,7 @@ public class UIManager : MonoBehaviour
     {
         levelCompletePanel.SetActive(true);
         Time.timeScale = 0f;
+        progresbaar.gameObject.SetActive(false);
         // Additional code to handle level completion (e.g., load next level)
     }
 
@@ -49,6 +52,8 @@ public class UIManager : MonoBehaviour
     {
         levelFailPanel.SetActive(true);
         Time.timeScale = 0f;
+        progresbaar.gameObject.SetActive(false);
+
         // Additional code to handle level failure (e.g., restart level)
     }
     public void RestartLevel()
@@ -60,5 +65,7 @@ public class UIManager : MonoBehaviour
         Time.timeScale = 1f;
         levelCompletePanel.SetActive(false);
         levelFailPanel.SetActive(false);
+        progresbaar.gameObject.SetActive(true);
+
     }
 }
