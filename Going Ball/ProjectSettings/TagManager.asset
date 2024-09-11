@@ -6,6 +6,7 @@ TagManager:
   tags:
   - EndPoint
   - Spike
+  - CurvePoint
   layers:
   - Default
   - TransparentFX

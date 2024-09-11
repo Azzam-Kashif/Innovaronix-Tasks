@@ -7,11 +7,17 @@ public class BallController : MonoBehaviour
     public float sidewaysForceMultiplier = 10f;
     public float maxSidewaysSpeed = 5f;
     public float dragSensitivity = 1f;
+    public float turnSpeed = 5f;
 
     private Rigidbody rb;
     private float initialPositionX;
     private float fallThreshold = -1;
     public Vector3 startPosition;
+    private Vector3 currentDirection = Vector3.forward;
+    
+    private Quaternion targetRotation;
+    private bool isTurning = false;
+
     private void Awake()
     {
         // Singleton pattern implementation
@@ -46,6 +52,17 @@ public class BallController : MonoBehaviour
         if (transform.position.y < fallThreshold)
         {
             EventManager.Instance.LevelFail();
+        }
+        if (isTurning)
+        {
+            // Smoothly rotate towards the target direction
+            transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
+
+            // Stop turning when the rotation is nearly complete
+            if (Quaternion.Angle(transform.rotation, targetRotation) < 1f)
+            {
+                isTurning = false;
+            }
         }
     }
 
@@ -100,4 +117,5 @@ public class BallController : MonoBehaviour
             Instance = null;
         }
     }
+
 }
