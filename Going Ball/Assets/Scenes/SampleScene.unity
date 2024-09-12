@@ -965,6 +965,10 @@ PrefabInstance:
       propertyPath: m_LocalEulerAnglesHint.z
       value: 0
       objectReference: {fileID: 0}
+    - target: {fileID: -4667641077720533869, guid: 52ebe1dda50bad8498b7c88282683817, type: 3}
+      propertyPath: m_TagString
+      value: Player
+      objectReference: {fileID: 0}
     - target: {fileID: 919132149155446097, guid: 52ebe1dda50bad8498b7c88282683817, type: 3}
       propertyPath: m_Name
       value: tennis_ball
@@ -980,6 +984,10 @@ PrefabInstance:
     - target: {fileID: 2474741937959594352, guid: 52ebe1dda50bad8498b7c88282683817, type: 3}
       propertyPath: m_LocalScale.z
       value: 2
+      objectReference: {fileID: 0}
+    - target: {fileID: 2474741937959594352, guid: 52ebe1dda50bad8498b7c88282683817, type: 3}
+      propertyPath: m_LocalPosition.x
+      value: 0
       objectReference: {fileID: 0}
     - target: {fileID: 2474741937959594352, guid: 52ebe1dda50bad8498b7c88282683817, type: 3}
       propertyPath: m_LocalPosition.y
@@ -2585,6 +2593,7 @@ GameObject:
   m_Component:
   - component: {fileID: 1262023645}
   - component: {fileID: 1262023644}
+  - component: {fileID: 1262023646}
   m_Layer: 0
   m_Name: GameObject
   m_TagString: CurvePoint
@@ -2628,6 +2637,19 @@ Transform:
   m_Children: []
   m_Father: {fileID: 0}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 90}
+--- !u!114 &1262023646
+MonoBehaviour:
+  m_ObjectHideFlags: 0
+  m_CorrespondingSourceObject: {fileID: 0}
+  m_PrefabInstance: {fileID: 0}
+  m_PrefabAsset: {fileID: 0}
+  m_GameObject: {fileID: 1262023643}
+  m_Enabled: 1
+  m_EditorHideFlags: 0
+  m_Script: {fileID: 11500000, guid: 0af2fc646fbda22479228d0d43fe3af5, type: 3}
+  m_Name: 
+  m_EditorClassIdentifier: 
+  turnDirection: {x: 0, y: -35.83, z: 90}
 --- !u!1 &1294952728
 GameObject:
   m_ObjectHideFlags: 0

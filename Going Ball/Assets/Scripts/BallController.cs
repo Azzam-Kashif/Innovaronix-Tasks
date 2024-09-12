@@ -1,5 +1,4 @@
 using UnityEngine;
-
 public class BallController : MonoBehaviour
 {
     public static BallController Instance { get; private set; }
@@ -14,13 +13,12 @@ public class BallController : MonoBehaviour
     private float fallThreshold = -1;
     public Vector3 startPosition;
     private Vector3 currentDirection = Vector3.forward;
-    
+
     private Quaternion targetRotation;
     private bool isTurning = false;
 
     private void Awake()
     {
-        // Singleton pattern implementation
         if (Instance == null)
         {
             Instance = this;
@@ -38,15 +36,14 @@ public class BallController : MonoBehaviour
     }
     private void FixedUpdate()
     {
-  
-        // Set a consistent forward speed
+
         Vector3 velocity = rb.velocity;
         velocity.z = forwardForce;
         rb.velocity = new Vector3(velocity.x, rb.velocity.y, velocity.z);
     }
     void Update()
     {
-       // rb.AddForce(Vector3.forward * forwardForce, ForceMode.Acceleration);
+        rb.AddForce(Vector3.forward * forwardForce, ForceMode.Acceleration);
 
         HandleMouseDrag();
         if (transform.position.y < fallThreshold)
@@ -55,13 +52,13 @@ public class BallController : MonoBehaviour
         }
         if (isTurning)
         {
-            // Smoothly rotate towards the target direction
+
             transform.rotation = Quaternion.Slerp(transform.rotation, targetRotation, turnSpeed * Time.deltaTime);
 
-            // Stop turning when the rotation is nearly complete
             if (Quaternion.Angle(transform.rotation, targetRotation) < 1f)
             {
                 isTurning = false;
+                currentDirection = transform.forward;
             }
         }
     }
@@ -85,11 +82,16 @@ public class BallController : MonoBehaviour
             initialPositionX = Input.mousePosition.x;
         }
     }
+    public void StartTurn(Vector3 curveDirection)
+    {
+        Debug.Log("Starting turn with direction: " + curveDirection);
+        targetRotation = Quaternion.LookRotation(curveDirection);
+        isTurning = true;
+    }
     private void OnCollisionEnter(Collision collision)
     {
         if (collision.gameObject.CompareTag("Spike") || transform.position.y < -10)
         {
-            // Level fails if ball hits a spike or falls off
             EventManager.Instance?.LevelFail();
         }
     }
@@ -98,8 +100,12 @@ public class BallController : MonoBehaviour
     {
         if (other.CompareTag("EndPoint"))
         {
-            // Level passes if ball reaches the endpoint
             EventManager.Instance.LevelPass();
+        }
+        else if (other.CompareTag("CurvePoint"))
+        {
+            Vector3 turnDirection = other.transform.forward;
+            StartTurn(turnDirection);
         }
     }
     public void Respawn()
@@ -108,10 +114,10 @@ public class BallController : MonoBehaviour
         rb.velocity = Vector3.zero;
         rb.angularVelocity = Vector3.zero;
         transform.position = startPosition;
+        transform.rotation = Quaternion.identity;
     }
     private void OnDestroy()
     {
-        // Set the instance to null when destroyed to avoid stale references
         if (Instance == this)
         {
             Instance = null;
