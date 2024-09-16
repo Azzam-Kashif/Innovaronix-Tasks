@@ -13,7 +13,7 @@ public class BallController : MonoBehaviour
     private float initialPositionX;
     private float fallThreshold = -1;
     public Vector3 startPosition;
-    private Vector3 currentDirection = Vector3.forward; // Current movement direction
+    private Vector3 currentDirection = Vector3.forward;
 
     private Quaternion targetRotation;
     private bool isTurning = false;
