@@ -7,14 +7,15 @@ TagManager:
   - EndPoint
   - Spike
   - CurvePoint
+  - Obstacle
   layers:
   - Default
   - TransparentFX
   - Ignore Raycast
-  - 
+  - obstacleLayerMask
   - Water
   - UI
-  - 
+  - Ground
   - 
   - 
   - 
