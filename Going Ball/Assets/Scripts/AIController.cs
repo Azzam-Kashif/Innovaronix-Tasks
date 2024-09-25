@@ -6,7 +6,7 @@ public class AIController : MovementWithSpline
     public float obstacleAvoidanceStrength = 5f; // The strength of obstacle avoidance
     public float sphereCastRadius = 0.5f; // The radius of the sphere used in SphereCast
     public float castHeightOffset = 1f; // Height offset for the sphere cast
-    public float avoidanceDuration = 3f; // Time for how long to avoid the obstacle before returning to spline
+    public float avoidanceDuration = 1f; // Reduced time for how long to avoid the obstacle before returning to spline
     public float returnSpeed = 5f; // Speed to return to the spline
     public LayerMask obstacleLayerMask; // Layer mask to ensure only obstacles are detected
     public LayerMask groundLayerMask;
@@ -16,8 +16,7 @@ public class AIController : MovementWithSpline
     private float avoidanceTimer = 0f;
     private bool isAvoidingObstacle = false;
     private bool isReturningToSpline = false;
-    private Vector3 splineDirection; // The direction of spline movement
-    private Vector3 fixedForwardDirection; // Fixed direction for raycasting (doesn't rotate)
+    private Vector3 avoidanceDirection; // Store the direction of avoidance
 
     protected override void Start()
     {
@@ -27,10 +26,6 @@ public class AIController : MovementWithSpline
         {
             Debug.LogError("Rigidbody component not found.");
         }
-
-        // Set the initial spline direction and raycast direction
-        splineDirection = transform.forward;
-        fixedForwardDirection = splineDirection; // Keep a fixed forward direction for obstacle detection
     }
 
     protected override void FixedUpdate()
@@ -58,13 +53,18 @@ public class AIController : MovementWithSpline
         Vector3 sphereCastOrigin = transform.position + Vector3.up * castHeightOffset;
 
         RaycastHit hit;
-        // Use the fixed forward direction for raycasting (this won't rotate with the object)
-        bool obstacleDetected = Physics.SphereCast(sphereCastOrigin, sphereCastRadius, fixedForwardDirection, out hit, obstacleDetectionRange, obstacleLayerMask);
+        // Use the actual forward direction for raycasting based on velocity
+        Vector3 forwardDirection = _rb.velocity.magnitude > 0.1f ? _rb.velocity.normalized : transform.forward;
+
+        bool obstacleDetected = Physics.SphereCast(sphereCastOrigin, sphereCastRadius, forwardDirection, out hit, obstacleDetectionRange, obstacleLayerMask);
 
         if (obstacleDetected && hit.collider.CompareTag("Obstacle"))
         {
             isAvoidingObstacle = true;
             avoidanceTimer = 0f; // Reset the timer
+
+            // Calculate avoidance direction
+            avoidanceDirection = Vector3.Cross(hit.normal, Vector3.up).normalized;
         }
     }
 
@@ -72,22 +72,18 @@ public class AIController : MovementWithSpline
     {
         avoidanceTimer += Time.fixedDeltaTime;
 
-        // Calculate avoidance direction and move away from the obstacle
-        Vector3 sphereCastOrigin = transform.position + Vector3.up * castHeightOffset;
-        RaycastHit hit;
-        if (Physics.SphereCast(sphereCastOrigin, sphereCastRadius, fixedForwardDirection, out hit, obstacleDetectionRange, obstacleLayerMask))
+        if (avoidanceTimer <= avoidanceDuration)
         {
-            Vector3 avoidanceDirection = Vector3.Cross(hit.normal, Vector3.up).normalized;
+            // Move away from the obstacle using calculated avoidance direction
             Vector3 targetPosition = transform.position + avoidanceDirection * obstacleAvoidanceStrength;
             targetPosition.y = _rb.position.y;
 
-            // Move smoothly while avoiding the obstacle
+            // Apply a smooth force to avoid the obstacle
             _rb.velocity = Vector3.Lerp(_rb.velocity, (targetPosition - _rb.position) / Time.fixedDeltaTime, 0.5f);
         }
-
-        // After a certain time, start returning to the spline
-        if (avoidanceTimer >= avoidanceDuration)
+        else
         {
+            // Start returning to the spline after avoidance
             isAvoidingObstacle = false;
             isReturningToSpline = true;
         }
@@ -96,13 +92,13 @@ public class AIController : MovementWithSpline
     private void ReturnToSpline()
     {
         // Smoothly return to spline direction
-        _rb.velocity = Vector3.Lerp(_rb.velocity, splineDirection * forwardForce, returnSpeed * Time.fixedDeltaTime);
+        _rb.velocity = Vector3.Lerp(_rb.velocity, transform.forward * forwardForce, returnSpeed * Time.fixedDeltaTime);
 
         // Check if we are close enough to spline movement to stop returning
-        if (Vector3.Distance(_rb.velocity.normalized, splineDirection) < 0.1f)
+        if (Vector3.Distance(_rb.velocity.normalized, transform.forward) < 0.1f)
         {
             isReturningToSpline = false;
-            _rb.velocity = splineDirection * forwardForce; // Resume normal movement along the spline
+            _rb.velocity = transform.forward * forwardForce; // Resume normal movement along the spline
         }
     }
 
@@ -116,15 +112,7 @@ public class AIController : MovementWithSpline
         if (!isGrounded)
         {
             Debug.Log("[DEBUG] Ball has left the ground. Destroying the ball.");
-            Destroy(gameObject);
-        }
-    }
-
-    private void OnCollisionEnter(Collision collision)
-    {
-        if (collision.collider.CompareTag("Obstacle"))
-        {
-            Destroy(gameObject);
+           //Destroy(gameObject);
         }
     }
 
@@ -132,8 +120,7 @@ public class AIController : MovementWithSpline
     {
         Gizmos.color = Color.red;
         Vector3 sphereCastOrigin = transform.position + Vector3.up * castHeightOffset;
-        // Use the fixed forward direction for drawing the spherecast
-        Gizmos.DrawLine(sphereCastOrigin, sphereCastOrigin + fixedForwardDirection * obstacleDetectionRange);
-        Gizmos.DrawWireSphere(sphereCastOrigin + fixedForwardDirection * obstacleDetectionRange, sphereCastRadius);
+        Gizmos.DrawLine(sphereCastOrigin, sphereCastOrigin + _rb.velocity.normalized * obstacleDetectionRange);
+        Gizmos.DrawWireSphere(sphereCastOrigin + _rb.velocity.normalized * obstacleDetectionRange, sphereCastRadius);
     }
 }

@@ -3,7 +3,10 @@ public class PlayerController : MovementWithSpline
 {
     private float initialPositionX;
     private bool isDragging = false;
-
+    protected override void Start()
+    {
+        base.Start();
+    }
     protected override void Update()
     {
         HandleMouseDrag();

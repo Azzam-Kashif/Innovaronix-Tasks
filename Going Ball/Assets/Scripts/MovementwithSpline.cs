@@ -34,6 +34,7 @@ public class MovementWithSpline : MonoBehaviour
         // This will be overridden by AI or Player-specific input handling
     }
 
+
     // Core method for movement along the spline
     protected void MoveAlongSpline()
     {
@@ -69,7 +70,6 @@ public class MovementWithSpline : MonoBehaviour
             }
         }
     }
-
     public virtual void Respawn()
     {
         rb.velocity = Vector3.zero;
