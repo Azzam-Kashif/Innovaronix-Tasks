@@ -8,6 +8,7 @@ TagManager:
   - Spike
   - CurvePoint
   - Obstacle
+  - AI
   layers:
   - Default
   - TransparentFX

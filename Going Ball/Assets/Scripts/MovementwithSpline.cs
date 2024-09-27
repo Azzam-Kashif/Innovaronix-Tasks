@@ -12,16 +12,25 @@ public class MovementWithSpline : MonoBehaviour
     public float rotationSpeed = 200f;
     public float obstacleDetectionDistance = 5f;  // For detecting obstacles
     public float dodgeStrength = 1f;  // Strength of dodging movements
+    public float t = 0;
 
     protected Rigidbody rb;
     protected float distancePercentage = 0f;
     protected float splineLength;
     protected float lateralOffset = 0f;
 
+    private RankingManager rankingManager;
+
+
     protected virtual void Start()
     {
         rb = GetComponent<Rigidbody>();
         splineLength = spline.CalculateLength();
+        rankingManager = FindObjectOfType<RankingManager>();
+        if (rankingManager != null)
+        {
+            rankingManager.RegisterPlayer(this); // Register player with RankingManager
+        }
     }
 
     protected virtual void FixedUpdate()
@@ -70,6 +79,15 @@ public class MovementWithSpline : MonoBehaviour
             }
         }
     }
+    public float GetDistancePercentage()
+    {
+        return distancePercentage;
+    }
+    public float GetDistanceAlongSpline()
+    {
+        return t * spline.Spline.GetLength();
+    }
+
     public virtual void Respawn()
     {
         rb.velocity = Vector3.zero;

@@ -6,6 +6,11 @@ public class PlayerController : MovementWithSpline
     protected override void Start()
     {
         base.Start();
+        RankingManager rankingManager = FindObjectOfType<RankingManager>();
+        if (rankingManager != null)
+        {
+            rankingManager.RegisterPlayer(this);
+        }
     }
     protected override void Update()
     {

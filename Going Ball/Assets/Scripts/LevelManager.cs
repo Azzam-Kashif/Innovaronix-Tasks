@@ -34,6 +34,17 @@ public class LevelController : MonoBehaviour
         StartCoroutine(SpawnAIBalls());
     }
 
+    private void Update()
+    {
+        ClampPositionToBounds();
+        RankingManager rankingManager = FindObjectOfType<RankingManager>();
+        if (rankingManager != null)
+        {
+            rankingManager.UpdateRankings(); // Update rankings every frame (or you can set a timer)
+        }
+    }
+
+
     IEnumerator SpawnAIBalls()
     {
         if (usePredefinedSpawnPoints)
@@ -176,5 +187,15 @@ public class LevelController : MonoBehaviour
         );
 
         splineContainer.transform.position = newPosition;
+    }
+    void ClampPositionToBounds()
+    {
+        Vector3 clampedPosition = new Vector3(
+            Mathf.Clamp(transform.position.x, platformMinBounds.x, platformMaxBounds.x),
+            transform.position.y, // Keep Y unchanged unless you want to clamp it as well
+            Mathf.Clamp(transform.position.z, platformMinBounds.z, platformMaxBounds.z)
+        );
+
+        transform.position = clampedPosition;
     }
 }

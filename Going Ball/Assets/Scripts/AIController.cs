@@ -10,6 +10,7 @@ public class AIController : MovementWithSpline
     public float returnSpeed = 5f; // Speed to return to the spline
     public LayerMask obstacleLayerMask; // Layer mask to ensure only obstacles are detected
     public LayerMask groundLayerMask;
+    public float separationDistance = 1.5f;
 
     private Rigidbody _rb;
     private float groundCheckDistance = 1f;
@@ -26,13 +27,17 @@ public class AIController : MovementWithSpline
         {
             Debug.LogError("Rigidbody component not found.");
         }
+        RankingManager rankingManager = FindObjectOfType<RankingManager>();
+        if (rankingManager != null)
+        {
+            rankingManager.RegisterAI(this);
+        }
     }
-
     protected override void FixedUpdate()
     {
         if (isReturningToSpline)
         {
-            ReturnToSpline(); // Smoothly return to the spline
+            //ReturnToSpline(); // Smoothly return to the spline
         }
         else if (isAvoidingObstacle)
         {
@@ -88,8 +93,7 @@ public class AIController : MovementWithSpline
             isReturningToSpline = true;
         }
     }
-
-    private void ReturnToSpline()
+    /*private void ReturnToSpline()
     {
         // Smoothly return to spline direction
         _rb.velocity = Vector3.Lerp(_rb.velocity, transform.forward * forwardForce, returnSpeed * Time.fixedDeltaTime);
@@ -100,27 +104,40 @@ public class AIController : MovementWithSpline
             isReturningToSpline = false;
             _rb.velocity = transform.forward * forwardForce; // Resume normal movement along the spline
         }
-    }
+    }*/
+    void MaintainSeparation()
+    {
+        // Find all other AI balls in the scene
+        AIController[] allAIs = FindObjectsOfType<AIController>();
 
+        foreach (AIController otherAI in allAIs)
+        {
+            // Skip self-check to avoid comparing to itself
+            if (otherAI != this)
+            {
+                float distance = Vector3.Distance(transform.position, otherAI.transform.position);
+                if (distance < separationDistance)
+                {
+                    // Calculate direction away from the other AI
+                    Vector3 direction = (transform.position - otherAI.transform.position).normalized;
+                    // Move this AI away from the other AI
+                    transform.position += direction * (separationDistance - distance);
+                }
+            }
+        }
+    }
     private void CheckIfOffGround()
     {
-        // Perform a raycast downwards to check if the ball is grounded
         RaycastHit groundHit;
         bool isGrounded = Physics.Raycast(transform.position, Vector3.down, out groundHit, groundCheckDistance, groundLayerMask);
 
-        // If the ball is not grounded, destroy it
         if (!isGrounded)
         {
-            Debug.Log("[DEBUG] Ball has left the ground. Destroying the ball.");
-           //Destroy(gameObject);
-        }
-    }
+            // Let the Rigidbody handle the ball falling naturally with gravity
+            _rb.useGravity = true; // Ensure gravity is applied
+            _rb.isKinematic = false; // Allow physics to move the ball
 
-    private void OnDrawGizmosSelected()
-    {
-        Gizmos.color = Color.red;
-        Vector3 sphereCastOrigin = transform.position + Vector3.up * castHeightOffset;
-        Gizmos.DrawLine(sphereCastOrigin, sphereCastOrigin + _rb.velocity.normalized * obstacleDetectionRange);
-        Gizmos.DrawWireSphere(sphereCastOrigin + _rb.velocity.normalized * obstacleDetectionRange, sphereCastRadius);
+            Debug.Log("[DEBUG] Ball has left the ground.");
+        }
     }
 }
