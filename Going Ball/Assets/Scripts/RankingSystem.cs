@@ -1,7 +1,7 @@
 using System.Collections.Generic;
 using UnityEngine;
-using UnityEngine.UI; // Make sure to include this if using standard UI
-using TMPro; // Include this if using TextMeshPro
+using UnityEngine.UI;
+using TMPro;
 
 public class RankingManager : MonoBehaviour
 {
@@ -13,30 +13,48 @@ public class RankingManager : MonoBehaviour
 
     public void RegisterPlayer(MovementWithSpline player)
     {
-        players.Add(player);
+        // Ensure the player is only registered once and is tagged as "Player"
+        if (!players.Contains(player) && player.gameObject.CompareTag("Player"))
+        {
+            players.Add(player);
+            Debug.Log("Player Registered: " + player.name);
+        }
     }
 
     public void RegisterAI(AIController ai)
     {
-        aiControllers.Add(ai);
+        // Ensure the AI is only registered once and is tagged as "AI"
+        if (!aiControllers.Contains(ai) && ai.gameObject.CompareTag("AI"))
+        {
+            aiControllers.Add(ai);
+            Debug.Log("AI Registered: " + ai.name);
+        }
     }
 
     public void UpdateRankings()
     {
         List<(MovementWithSpline participant, float distance)> participants = new List<(MovementWithSpline, float)>();
 
+        // Add players, ensuring they are active and tagged correctly
         foreach (var player in players)
         {
-            participants.Add((player, player.GetDistancePercentage()));
+            if (player != null && player.gameObject.activeInHierarchy)
+            {
+                participants.Add((player, player.GetDistancePercentage()));
+            }
         }
 
+        // Add AIs, ensuring they are active and tagged correctly
         foreach (var ai in aiControllers)
         {
-            participants.Add((ai, ai.GetDistancePercentage()));
+            if (ai != null && ai.gameObject.activeInHierarchy)
+            {
+                participants.Add((ai, ai.GetDistancePercentage()));
+            }
         }
 
-        // Sort participants by distance traveled
-        participants.Sort((x, y) => y.distance.CompareTo(x.distance)); // Descending order
+        // Sort participants by distance traveled (Descending order)
+        participants.Sort((x, y) => y.distance.CompareTo(x.distance));
 
         // Build the ranking string
         string rankingString = "Rankings:\n";
@@ -47,6 +65,5 @@ public class RankingManager : MonoBehaviour
 
         // Update the UI text
         rankingText.text = rankingString;
-        // rankingText.text = rankingString; // For TextMeshPro
     }
 }
