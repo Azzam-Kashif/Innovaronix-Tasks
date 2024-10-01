@@ -1151,6 +1151,10 @@ PrefabInstance:
       value: 0
       objectReference: {fileID: 0}
     - target: {fileID: -4667641077720533869, guid: 52ebe1dda50bad8498b7c88282683817, type: 3}
+      propertyPath: m_Name
+      value: You
+      objectReference: {fileID: 0}
+    - target: {fileID: -4667641077720533869, guid: 52ebe1dda50bad8498b7c88282683817, type: 3}
       propertyPath: m_IsActive
       value: 1
       objectReference: {fileID: 0}
@@ -1449,6 +1453,10 @@ PrefabInstance:
     - target: {fileID: 4772403354003795729, guid: 0b6c182872082e840a8ed8a844f78dbd, type: 3}
       propertyPath: m_Layer
       value: 3
+      objectReference: {fileID: 0}
+    - target: {fileID: 4772403354003795729, guid: 0b6c182872082e840a8ed8a844f78dbd, type: 3}
+      propertyPath: m_IsActive
+      value: 1
       objectReference: {fileID: 0}
     - target: {fileID: 4772403354003795729, guid: 0b6c182872082e840a8ed8a844f78dbd, type: 3}
       propertyPath: m_TagString
@@ -2492,7 +2500,7 @@ MonoBehaviour:
     m_FontStyle: 0
     m_BestFit: 1
     m_MinSize: 10
-    m_MaxSize: 19
+    m_MaxSize: 15
     m_Alignment: 0
     m_AlignByGeometry: 0
     m_RichText: 1
@@ -2522,10 +2530,10 @@ RectTransform:
   m_Children: []
   m_Father: {fileID: 1358970913}
   m_LocalEulerAnglesHint: {x: 0, y: 0, z: 0}
-  m_AnchorMin: {x: 0.5, y: 0.5}
-  m_AnchorMax: {x: 0.5, y: 0.5}
-  m_AnchoredPosition: {x: -84.45207, y: -147.3318}
-  m_SizeDelta: {x: 328.9041, y: 242.6635}
+  m_AnchorMin: {x: 1, y: 1}
+  m_AnchorMax: {x: 1, y: 1}
+  m_AnchoredPosition: {x: -112, y: -132}
+  m_SizeDelta: {x: 324.7319, y: 242.66351}
   m_Pivot: {x: 0.5, y: 0.5}
 --- !u!1 &941622846
 GameObject:
@@ -6043,6 +6051,10 @@ PrefabInstance:
       value: 3
       objectReference: {fileID: 0}
     - target: {fileID: 4772403354003795729, guid: 0b6c182872082e840a8ed8a844f78dbd, type: 3}
+      propertyPath: m_IsActive
+      value: 1
+      objectReference: {fileID: 0}
+    - target: {fileID: 4772403354003795729, guid: 0b6c182872082e840a8ed8a844f78dbd, type: 3}
       propertyPath: m_TagString
       value: Obstacle
       objectReference: {fileID: 0}
@@ -6658,7 +6670,7 @@ Transform:
   m_GameObject: {fileID: 2059451685}
   serializedVersion: 2
   m_LocalRotation: {x: 0, y: 0, z: 0, w: 1}
-  m_LocalPosition: {x: -3.813, y: 9.73, z: 31.31}
+  m_LocalPosition: {x: -3.813, y: 9.73, z: 30.443}
   m_LocalScale: {x: 1, y: 1, z: 1}
   m_ConstrainProportionsScale: 0
   m_Children:
@@ -6751,9 +6763,9 @@ MonoBehaviour:
   - {fileID: 1487653766}
   - {fileID: 1389551796}
   player: {fileID: 1981329028}
-  usePredefinedSpawnPoints: 1
-  platformMinBounds: {x: -3, y: 0, z: -15}
-  platformMaxBounds: {x: 3, y: 0, z: -9}
+  usePredefinedSpawnPoints: 0
+  platformMinBounds: {x: -3, y: 0, z: -17}
+  platformMaxBounds: {x: 3, y: 0, z: -15}
 --- !u!4 &2104393363
 Transform:
   m_ObjectHideFlags: 0
@@ -6826,7 +6838,7 @@ PrefabInstance:
     m_Modifications:
     - target: {fileID: 6615311981186796813, guid: a52d5acfe829d8f42af3386f40847fe0, type: 3}
       propertyPath: m_Name
-      value: Sphere (1)
+      value: Opponent
       objectReference: {fileID: 0}
     - target: {fileID: 6615311981186796813, guid: a52d5acfe829d8f42af3386f40847fe0, type: 3}
       propertyPath: m_IsActive
@@ -6836,6 +6848,34 @@ PrefabInstance:
       propertyPath: spline
       value: 
       objectReference: {fileID: 1186632206}
+    - target: {fileID: 7711901136968679545, guid: a52d5acfe829d8f42af3386f40847fe0, type: 3}
+      propertyPath: turnSpeed
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7711901136968679545, guid: a52d5acfe829d8f42af3386f40847fe0, type: 3}
+      propertyPath: dodgeStrength
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7711901136968679545, guid: a52d5acfe829d8f42af3386f40847fe0, type: 3}
+      propertyPath: dragSensitivity
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7711901136968679545, guid: a52d5acfe829d8f42af3386f40847fe0, type: 3}
+      propertyPath: maxLateralOffset
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7711901136968679545, guid: a52d5acfe829d8f42af3386f40847fe0, type: 3}
+      propertyPath: avoidanceDuration
+      value: 0.2
+      objectReference: {fileID: 0}
+    - target: {fileID: 7711901136968679545, guid: a52d5acfe829d8f42af3386f40847fe0, type: 3}
+      propertyPath: sidewaysForceMultiplier
+      value: 0.1
+      objectReference: {fileID: 0}
+    - target: {fileID: 7711901136968679545, guid: a52d5acfe829d8f42af3386f40847fe0, type: 3}
+      propertyPath: obstacleAvoidanceStrength
+      value: 0.1
+      objectReference: {fileID: 0}
     - target: {fileID: 8202979475841019506, guid: a52d5acfe829d8f42af3386f40847fe0, type: 3}
       propertyPath: m_LocalPosition.x
       value: 0.487

@@ -93,7 +93,7 @@ public class AIController : MovementWithSpline
             isReturningToSpline = true;
         }
     }
-    /*private void ReturnToSpline()
+    private void ReturnToSpline()
     {
         // Smoothly return to spline direction
         _rb.velocity = Vector3.Lerp(_rb.velocity, transform.forward * forwardForce, returnSpeed * Time.fixedDeltaTime);
@@ -104,7 +104,7 @@ public class AIController : MovementWithSpline
             isReturningToSpline = false;
             _rb.velocity = transform.forward * forwardForce; // Resume normal movement along the spline
         }
-    }*/
+    }
     void MaintainSeparation()
     {
         // Find all other AI balls in the scene
@@ -138,6 +138,13 @@ public class AIController : MovementWithSpline
             _rb.isKinematic = false; // Allow physics to move the ball
 
             Debug.Log("[DEBUG] Ball has left the ground.");
+        }
+    }
+    private void OnTriggerEnter(Collider other)
+    {
+        if (other.CompareTag("EndPoint"))
+        {
+            EventManager.Instance.LevelFail();
         }
     }
 }
