@@ -6764,8 +6764,8 @@ MonoBehaviour:
   - {fileID: 1389551796}
   player: {fileID: 1981329028}
   usePredefinedSpawnPoints: 0
-  platformMinBounds: {x: -3, y: 0, z: -17}
-  platformMaxBounds: {x: 3, y: 0, z: -15}
+  platformMinBounds: {x: -1, y: 0, z: -17}
+  platformMaxBounds: {x: 0, y: 0, z: -15}
 --- !u!4 &2104393363
 Transform:
   m_ObjectHideFlags: 0
