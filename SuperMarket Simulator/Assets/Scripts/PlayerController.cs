@@ -9,8 +9,13 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float runSpeed = 6f;
     [SerializeField] float rotationSpeed = 500f;
     [SerializeField] Joystick joystick;
+    [SerializeField] Transform holdPosition;
+    [SerializeField] LayerMask pickableLayer;
+    [SerializeField] float pickUpRange = 2f;
 
-    [SerializeField] float walkSpeedThreshold = 0.5f;
+    [SerializeField] float runThreshold = 0.8f;  // The threshold to switch to running
+
+    private PickableItem pickedUpItem = null;
 
     Quaternion targetRotation;
 
@@ -50,9 +55,9 @@ public class PlayerController : MonoBehaviour
 
         if (inputMagnitude > 0.1f)
         {
-            float moveSpeed = inputMagnitude < walkSpeedThreshold ? walkSpeed : runSpeed;
+            float moveSpeed = (inputMagnitude > runThreshold) ? runSpeed : walkSpeed;
 
-            DOTween.To(() => currentMoveAmount, x => currentMoveAmount = x, inputMagnitude, 0.1f).SetEase(Ease.OutQuad);
+            DOTween.To(() => currentMoveAmount, x => currentMoveAmount = x, inputMagnitude, 0.09f).SetEase(Ease.OutQuad);
             animator.SetFloat("moveAmount", currentMoveAmount);
 
             Vector3 moveInput = new Vector3(h, 0, v).normalized;
@@ -68,5 +73,72 @@ public class PlayerController : MonoBehaviour
             rb.velocity = Vector3.zero;
             animator.SetFloat("moveAmount", 0f);
         }
+
+        // Pick up or drop items
+        if (Input.GetKeyDown(KeyCode.E))
+        {
+            if (pickedUpItem == null)
+            {
+                TryPickUpItem();
+            }
+            else
+            {
+                DropItem();
+            }
+        }
+    }
+
+    private void TryPickUpItem()
+    {
+        RaycastHit hit;
+        if (Physics.Raycast(transform.position, transform.forward, out hit, pickUpRange, pickableLayer))
+        {
+            PickableItem item = hit.collider.GetComponent<PickableItem>();
+            if (item != null && !item.isPickedUp)
+            {
+                PickUpItem(item);
+            }
+        }
+    }
+
+    private void PickUpItem(PickableItem item)
+    {
+        pickedUpItem = item;
+        item.isPickedUp = true;
+
+        Physics.IgnoreCollision(item.GetComponent<Collider>(), GetComponent<Collider>(), true);
+
+        item.transform.SetParent(holdPosition);
+        item.transform.localPosition = Vector3.zero;
+        item.transform.localRotation = Quaternion.identity;
+
+        Rigidbody itemRb = item.GetComponent<Rigidbody>();
+        if (itemRb != null)
+        {
+            itemRb.isKinematic = true;  // Prevent the object from being affected by physics
+            itemRb.useGravity = false;   // Disable gravity while the item is held
+        }
+        animator.SetLayerWeight(animator.GetLayerIndex("HoldingItemLayer"), 1f);
+    }
+
+    private void DropItem()
+    {
+        if (pickedUpItem != null)
+        {
+            pickedUpItem.transform.SetParent(null);
+
+            Rigidbody itemRb = pickedUpItem.GetComponent<Rigidbody>();
+            if (itemRb != null)
+            {
+                itemRb.isKinematic = false;
+                itemRb.useGravity = true;
+            }
+
+            Physics.IgnoreCollision(pickedUpItem.GetComponent<Collider>(), GetComponent<Collider>(), false);
+
+            pickedUpItem.isPickedUp = false;
+            pickedUpItem = null;
+        }
+        animator.SetLayerWeight(animator.GetLayerIndex("HoldingItemLayer"), 0f);
     }
 }
