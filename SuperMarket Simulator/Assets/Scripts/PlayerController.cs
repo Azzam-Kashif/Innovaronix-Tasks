@@ -8,22 +8,24 @@ public class PlayerController : MonoBehaviour
     [SerializeField] float walkSpeed = 3f;
     [SerializeField] float runSpeed = 6f;
     [SerializeField] float rotationSpeed = 500f;
+    [SerializeField] float pickUpRange = 2f;
+    [SerializeField] float shelfRange = 2f;
+    [SerializeField] float raySpacing = 0.1f;  // Spacing between rays
+    [SerializeField] int numberOfRays = 3;  // Number of rays to cast
     [SerializeField] Joystick joystick;
     [SerializeField] Transform holdPosition;
+    [SerializeField] Transform headTransform;
     [SerializeField] LayerMask pickableLayer;
-    [SerializeField] float pickUpRange = 2f;
+    [SerializeField] LayerMask shelfLayer;
+    [SerializeField] float runThreshold = 0.8f;
 
-    [SerializeField] float runThreshold = 0.8f;  // The threshold to switch to running
-
+    private List<Transform> shelfSlots = new List<Transform>();  // List to hold shelf slots dynamically
+    private List<bool> slotOccupied;  // Tracks whether each slot is occupied
     private PickableItem pickedUpItem = null;
-
-    Quaternion targetRotation;
-
-    CameraController cameraController;
-    Animator animator;
-    Rigidbody rb;
-
-    float currentMoveAmount = 0f;
+    private CameraController cameraController;
+    private Animator animator;
+    private Rigidbody rb;
+    private float currentMoveAmount = 0f;
 
     private void Awake()
     {
@@ -38,8 +40,13 @@ public class PlayerController : MonoBehaviour
         Cursor.visible = true;
 
         rb.freezeRotation = true;
-
         animator.applyRootMotion = false;
+
+        // Dynamically find shelf slots by tag
+        FindShelfSlots();
+
+        // Initialize slot occupancy
+        slotOccupied = new List<bool>(new bool[shelfSlots.Count]);
     }
 
     private void Update()
@@ -65,13 +72,15 @@ public class PlayerController : MonoBehaviour
 
             rb.velocity = moveDir * moveSpeed;
 
-            targetRotation = Quaternion.LookRotation(moveDir);
+            Quaternion targetRotation = Quaternion.LookRotation(moveDir);
             transform.rotation = Quaternion.RotateTowards(transform.rotation, targetRotation, rotationSpeed * Time.deltaTime);
         }
         else
         {
             rb.velocity = Vector3.zero;
             animator.SetFloat("moveAmount", 0f);
+
+            transform.rotation = Quaternion.RotateTowards(transform.rotation, Quaternion.Euler(0, cameraController.PlanarRotation.eulerAngles.y, 0), rotationSpeed * Time.deltaTime);
         }
 
         // Pick up or drop items
@@ -83,21 +92,57 @@ public class PlayerController : MonoBehaviour
             }
             else
             {
-                DropItem();
+                if (IsNearShelf())
+                {
+                    PlaceItemInShelf();
+                }
+                else
+                {
+                    DropItem();
+                }
             }
         }
+    }
+
+    private void FindShelfSlots()
+    {
+        // Find all shelf slots tagged as "ShelfSlot" in the scene
+        GameObject[] slotObjects = GameObject.FindGameObjectsWithTag("ShelfSlot");
+        foreach (GameObject slotObj in slotObjects)
+        {
+            shelfSlots.Add(slotObj.transform);
+        }
+
+        Debug.Log("Found " + shelfSlots.Count + " shelf slots.");
     }
 
     private void TryPickUpItem()
     {
         RaycastHit hit;
-        if (Physics.Raycast(transform.position, transform.forward, out hit, pickUpRange, pickableLayer))
+        bool itemFound = false;
+
+        Vector3 rayOrigin = headTransform.position;
+        Vector3 baseDirection = Camera.main.transform.forward;
+
+        for (int i = -numberOfRays / 2; i <= numberOfRays / 2; i++)
         {
-            PickableItem item = hit.collider.GetComponent<PickableItem>();
-            if (item != null && !item.isPickedUp)
+            Vector3 rayDirection = Quaternion.Euler(0, i * raySpacing, 0) * baseDirection;
+
+            if (Physics.Raycast(rayOrigin, rayDirection, out hit, pickUpRange, pickableLayer))
             {
-                PickUpItem(item);
+                PickableItem item = hit.collider.GetComponent<PickableItem>();
+                if (item != null && !item.isPickedUp)
+                {
+                    PickUpItem(item);
+                    itemFound = true;
+                    break;
+                }
             }
+        }
+
+        if (!itemFound)
+        {
+            Debug.Log("No items detected.");
         }
     }
 
@@ -115,8 +160,8 @@ public class PlayerController : MonoBehaviour
         Rigidbody itemRb = item.GetComponent<Rigidbody>();
         if (itemRb != null)
         {
-            itemRb.isKinematic = true;  // Prevent the object from being affected by physics
-            itemRb.useGravity = false;   // Disable gravity while the item is held
+            itemRb.isKinematic = true;
+            itemRb.useGravity = false;
         }
         animator.SetLayerWeight(animator.GetLayerIndex("HoldingItemLayer"), 1f);
     }
@@ -125,20 +170,98 @@ public class PlayerController : MonoBehaviour
     {
         if (pickedUpItem != null)
         {
-            pickedUpItem.transform.SetParent(null);
-
-            Rigidbody itemRb = pickedUpItem.GetComponent<Rigidbody>();
-            if (itemRb != null)
+            if (IsNearShelf())
             {
-                itemRb.isKinematic = false;
-                itemRb.useGravity = true;
+                PlaceItemInShelf();
+            }
+            else
+            {
+                pickedUpItem.transform.SetParent(null);
+
+                Rigidbody itemRb = pickedUpItem.GetComponent<Rigidbody>();
+                if (itemRb != null)
+                {
+                    itemRb.isKinematic = false;
+                    itemRb.useGravity = true;
+                }
+
+                Physics.IgnoreCollision(pickedUpItem.GetComponent<Collider>(), GetComponent<Collider>(), false);
+
+                pickedUpItem.isPickedUp = false;
+                pickedUpItem = null;
             }
 
-            Physics.IgnoreCollision(pickedUpItem.GetComponent<Collider>(), GetComponent<Collider>(), false);
-
-            pickedUpItem.isPickedUp = false;
-            pickedUpItem = null;
+            animator.SetLayerWeight(animator.GetLayerIndex("HoldingItemLayer"), 0f);
         }
-        animator.SetLayerWeight(animator.GetLayerIndex("HoldingItemLayer"), 0f);
+    }
+
+    private void PlaceItemInShelf()
+    {
+        RaycastHit hit;
+        Vector3 rayOrigin = headTransform.position;
+        Vector3 baseDirection = Camera.main.transform.forward;
+
+        // Cast a ray to detect the shelf the player is pointing at
+        if (Physics.Raycast(rayOrigin, baseDirection, out hit, shelfRange, shelfLayer))
+        {
+            Shelf shelf = hit.collider.GetComponent<Shelf>();
+            if (shelf != null && shelf.HasAvailableSlot(out Transform availableSlot))
+            {
+                // Place the item in the available slot
+                pickedUpItem.transform.position = availableSlot.position;
+                pickedUpItem.transform.rotation = availableSlot.rotation;
+
+                // Mark the slot as occupied in the shelf
+                shelf.OccupySlot(availableSlot);
+
+                // Reset picked up item
+                pickedUpItem.transform.SetParent(null);
+                pickedUpItem.isPickedUp = false;
+                pickedUpItem = null;
+
+                animator.SetLayerWeight(animator.GetLayerIndex("HoldingItemLayer"), 0f);
+
+                Debug.Log("Item placed in shelf.");
+            }
+            else
+            {
+                Debug.Log("No available slot in the detected shelf.");
+            }
+        }
+        else
+        {
+            Debug.Log("No shelf detected within range.");
+        }
+    }
+
+    private bool IsNearShelf()
+    {
+        RaycastHit hit;
+        Vector3 rayOrigin = headTransform.position;
+        Vector3 baseDirection = Camera.main.transform.forward;
+
+        // Cast a ray to detect a shelf within range
+        return Physics.Raycast(rayOrigin, baseDirection, out hit, shelfRange, shelfLayer) && hit.collider.GetComponent<Shelf>() != null;
+    }
+    private void OnDrawGizmos()
+    {
+        // Ensure this only runs in play mode
+        if (!Application.isPlaying) return;
+
+        // Define the origin and direction of the ray
+        Vector3 rayOrigin = headTransform.position;
+        Vector3 baseDirection = Camera.main.transform.forward;
+
+        // Draw rays for item detection (multiple rays)
+        Gizmos.color = Color.green;  // Green for detecting pickable items
+        for (int i = -numberOfRays / 2; i <= numberOfRays / 2; i++)
+        {
+            Vector3 rayDirection = Quaternion.Euler(0, i * raySpacing, 0) * baseDirection;
+            Gizmos.DrawRay(rayOrigin, rayDirection * pickUpRange);  // Draw the ray for item detection
+        }
+
+        // Draw ray for shelf detection (single ray)
+        Gizmos.color = Color.blue;  // Blue for detecting shelves
+        Gizmos.DrawRay(rayOrigin, baseDirection * shelfRange);  // Draw the ray for shelf detection
     }
 }
