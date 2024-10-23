@@ -4,11 +4,21 @@ using UnityEngine;
 
 public class PickableItem : MonoBehaviour
 {
-    public bool isPickedUp = false;  // Keeps track of whether the item is picked up
+        public bool isPickedUp = false;
 
-    // You can add a function to show highlight or prompt when the item can be picked up.
-    public void HighlightItem(bool highlight)
-    {
-        // Add highlight logic (like changing material or enabling an outline shader)
+        public void PickUp()
+        {
+            isPickedUp = true;
+            // Handle picking up logic here, such as changing the item's state
+            // You might want to disable its collider or set it to inactive
+            gameObject.SetActive(false);
+        }
+
+        public void Place()
+        {
+            isPickedUp = false;
+            // Handle placing logic here, such as changing the item's state back
+            // You may want to re-enable the item or move it to a specific location
+            gameObject.SetActive(true); // or any other logic to place it
+        }
     }
-}

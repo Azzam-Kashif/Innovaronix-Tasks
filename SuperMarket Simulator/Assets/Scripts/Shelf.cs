@@ -7,6 +7,7 @@ public class Shelf : MonoBehaviour
     [SerializeField] Transform[] shelfSlots;  // Array of predefined shelf slots
     private bool[] slotOccupied;
 
+
     void Start()
     {
         slotOccupied = new bool[shelfSlots.Length];
@@ -36,5 +37,25 @@ public class Shelf : MonoBehaviour
         {
             slotOccupied[index] = true;
         }
+    }
+    public PickableItem GetItemFromSlot(Transform slot)
+    {
+        // Ensure the slot and item exist
+        if (slot == null)
+        {
+            Debug.LogWarning("Slot is null.");
+            return null;
+        }
+
+        PickableItem item = slot.GetComponentInChildren<PickableItem>();
+        if (item == null)
+        {
+            Debug.LogWarning("No PickableItem found in slot: " + slot.name);
+        }
+        else
+        {
+            Debug.Log("PickableItem found in slot: " + slot.name);
+        }
+        return item;
     }
 }
